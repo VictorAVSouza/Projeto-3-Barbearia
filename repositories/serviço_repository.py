@@ -1,64 +1,70 @@
+# servico_repository.py — REPOSITORY
+# O ÚNICO arquivo que conversa com o banco sobre serviços.
+from mysql.connector import IntegrityError
+
 from database.conexao import conectar
-from models.servico import Servico
-
-
-def _para_objeto(linha):
-    return Servico(id=linha["id_servico"], nome=linha["nome"], preco=linha["preco"])
 
 
 def listar():
-    conn = conectar()
+    """Devolve todos os serviços: uma lista de dicionários."""
+    conexao = conectar()
     try:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Servico ORDER BY id_servico")
-        return [_para_objeto(l) for l in cursor.fetchall()]
+        cursor = conexao.cursor(dictionary=True)
+        cursor.execute("SELECT id, nome, preco FROM servicos ORDER BY id")
+        return cursor.fetchall()
     finally:
-        conn.close()
+        conexao.close()
 
 
 def buscar_por_id(id_servico):
-    conn = conectar()
+    """Devolve um serviço (dicionário) ou None se não encontrar."""
+    conexao = conectar()
     try:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Servico WHERE id_servico = %s", (id_servico,))
-        linha = cursor.fetchone()
+        cursor = conexao.cursor(dictionary=True)
+        cursor.execute("SELECT id, nome, preco FROM servicos WHERE id = %s", (id_servico,))
+        return cursor.fetchone()
     finally:
-        conn.close()
-    return _para_objeto(linha) if linha else None
+        conexao.close()
 
 
-def inserir(servico):
-    conn = conectar()
+def adicionar(nome, preco):
+    """Cadastra um serviço. Devolve True se deu certo,
+    ou False se já existir um serviço com esse nome."""
+    conexao = conectar()
     try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO Servico (nome, preco) VALUES (%s, %s)",
-            (servico.nome, servico.preco),
-        )
-        conn.commit()
-        servico.id = cursor.lastrowid
+        cursor = conexao.cursor()
+        cursor.execute("INSERT INTO servicos (nome, preco) VALUES (%s, %s)", (nome, preco))
+        conexao.commit()
+        return True
+    except IntegrityError:   # nome repetido
+        return False
     finally:
-        conn.close()
+        conexao.close()
 
 
-def atualizar(servico):
-    conn = conectar()
+def atualizar(id_servico, nome, preco):
+    """Altera um serviço. Devolve True se deu certo,
+    ou False se o nome já pertencer a outro serviço."""
+    conexao = conectar()
     try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "UPDATE Servico SET nome = %s, preco = %s WHERE id_servico = %s",
-            (servico.nome, servico.preco, servico.id),
-        )
-        conn.commit()
+        cursor = conexao.cursor()
+        cursor.execute("UPDATE servicos SET nome = %s, preco = %s WHERE id = %s",
+                       (nome, preco, id_servico))
+        conexao.commit()
+        return True
+    except IntegrityError:   # nome repetido
+        return False
     finally:
-        conn.close()
+        conexao.close()
 
 
-def excluir(id_servico):
-    conn = conectar()
+def remover(id_servico):
+    """Apaga um serviço pelo id. Devolve True se apagou."""
+    conexao = conectar()
     try:
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM Servico WHERE id_servico = %s", (id_servico,))
-        conn.commit()
+        cursor = conexao.cursor()
+        cursor.execute("DELETE FROM servicos WHERE id = %s", (id_servico,))
+        conexao.commit()
+        return cursor.rowcount > 0
     finally:
-        conn.close()
+        conexao.close()
