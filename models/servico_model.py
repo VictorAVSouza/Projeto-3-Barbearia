@@ -1,4 +1,7 @@
-def converter_preco(texto): #converte '25,50' em 25.5, dá ValueError se estiver errada
+
+
+
+def converter_preco(texto): #converte '25,50' em 25.5, (dá ValueError) se estiver errada
     preco = float(texto.replace(",", "."))
     if not 0 < preco <= 999999.99:
         raise ValueError("preço fora do limite")
@@ -17,4 +20,6 @@ def validar_servico(nome, preco): #bloco com exceção / none se der certo
     except ValueError:
         return "Preço inválido. Use um valor maior que zero. Exemplo: 25,50"
     return None
+
+
 
