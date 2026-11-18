@@ -1,12 +1,11 @@
 # conexao.py
-# Guarda os dados de acesso ao MySQL em um só lugar.
-# A senha NÃO fica escrita aqui: ela vem do arquivo .env (que não vai para o GitHub).
+
 import os
 
 import mysql.connector
 from dotenv import load_dotenv
 
-load_dotenv()   # lê o arquivo .env da pasta do projeto
+load_dotenv()   
 
 CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
@@ -23,8 +22,6 @@ def conectar():
 
 
 if __name__ == "__main__":
-    # Teste rápido, no terminal:  python database/conexao.py
-    # Se der erro, a mensagem diz o que está errado (veja "Erros comuns" no README).
     conexao = conectar()
     print("Conectado ao MySQL, versão", conexao.get_server_info())
     conexao.close()
