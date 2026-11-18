@@ -36,8 +36,8 @@ titulos = ("ID", "Nome", "Telefone", "E-mail", "Nascimento", "Idade", "Tipo", "P
 tabela = ttk.Treeview(aba_clientes, columns=colunas, show="headings")
 for coluna, titulo in zip(colunas, titulos):
     tabela.heading(coluna, text=titulo)
-    tabela.column(coluna, width=100)
-tabela.column("id", width=40)
+    tabela.column(coluna, width=100, anchor="center")
+tabela.column("id", width=40, anchor="center")
 tabela.grid(row=0, column=1, pady=(45, 0), sticky="nsew")
 
 aba_clientes.grid_columnconfigure(1, weight=1)

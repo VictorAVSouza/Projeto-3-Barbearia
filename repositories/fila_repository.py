@@ -9,8 +9,9 @@ from database.conexao import conectar
 def listar():
     """Devolve a fila em ordem de chegada: uma lista de dicionários
     (id, nome, telefone, criado_em). O primeiro da lista é o próximo a ser atendido."""
-    sql = ("SELECT f.id, c.nome, c.telefone, f.criado_em "
+    sql = ("SELECT f.id, c.nome, c.telefone, s.nome AS servico, f.criado_em "
            "FROM fila_espera f JOIN clientes c ON c.id = f.id_cliente "
+           "LEFT JOIN servicos s ON s.id = f.id_servico "
            "ORDER BY f.id")
     conexao = conectar()
     try:
@@ -23,8 +24,9 @@ def listar():
 
 def buscar_primeiro():
     """Devolve o primeiro da fila (dicionário) ou None se a fila estiver vazia."""
-    sql = ("SELECT f.id, c.nome, c.telefone, f.criado_em "
+    sql = ("SELECT f.id, c.nome, c.telefone, s.nome AS servico, f.criado_em "
            "FROM fila_espera f JOIN clientes c ON c.id = f.id_cliente "
+           "LEFT JOIN servicos s ON s.id = f.id_servico "
            "ORDER BY f.id LIMIT 1")
     conexao = conectar()
     try:
@@ -46,13 +48,14 @@ def contar():
         conexao.close()
 
 
-def adicionar(id_cliente):
+def adicionar(id_cliente, id_servico):
     """Coloca o cliente no fim da fila. Devolve True se deu certo,
     ou False se ele já estiver na fila."""
     conexao = conectar()
     try:
         cursor = conexao.cursor()
-        cursor.execute("INSERT INTO fila_espera (id_cliente) VALUES (%s)", (id_cliente,))
+        cursor.execute("INSERT INTO fila_espera (id_cliente, id_servico) VALUES (%s, %s)",
+                       (id_cliente, id_servico))
         conexao.commit()
         return True
     except IntegrityError:   # cliente já está na fila

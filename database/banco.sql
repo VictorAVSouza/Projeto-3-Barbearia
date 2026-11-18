@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS servicos (
 CREATE TABLE IF NOT EXISTS fila_espera (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     id_cliente INT NOT NULL UNIQUE,
+    id_servico INT NULL,
     criado_em  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_cliente) REFERENCES clientes (id) ON DELETE CASCADE
+    FOREIGN KEY (id_cliente) REFERENCES clientes (id) ON DELETE CASCADE,
+    FOREIGN KEY (id_servico) REFERENCES servicos (id) ON DELETE SET NULL
 );
-

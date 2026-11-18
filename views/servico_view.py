@@ -23,9 +23,9 @@ tabela = ttk.Treeview(aba_servicos, columns=("id", "nome", "preco"), show="headi
 tabela.heading("id", text="ID")
 tabela.heading("nome", text="Serviço")
 tabela.heading("preco", text="Preço")
-tabela.column("id", width=40)
-tabela.column("nome", width=300)
-tabela.column("preco", width=100)
+tabela.column("id", width=40, anchor="center")
+tabela.column("nome", width=300, anchor="center")
+tabela.column("preco", width=100, anchor="center")
 tabela.grid(row=0, column=1, sticky="nsew")
 
 aba_servicos.grid_columnconfigure(1, weight=1)
