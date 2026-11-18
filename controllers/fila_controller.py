@@ -1,40 +1,65 @@
-from repositories import fila_repository
-from views.entrada import ler_texto
-from controllers.cliente_controller import achar_cliente_por_telefone
+from models import cliente_model
+from repositories import cliente_repository
+from repositories import fila_repository as repositorio
+from views import fila_view as view
+from views import mensagens_view as mensagens
 
 
-def entrar_na_fila():
-    print("\n--- Entrar na Fila de espera ---")
-    telefone = ler_texto("Telefone do cliente: ")
-    cliente = achar_cliente_por_telefone(telefone)
+def iniciar():
+    view.ligar_botoes(entrar, atender)
+    atualizar_tabela()
 
-    if not cliente:
-        print("Cliente não cadastrado. Use a opção 1 para cadastrar primeiro.")
+
+def atualizar_tabela():
+    try:
+        fila = repositorio.listar()
+    except Exception as erro:
+        mensagens.mostrar_erro_banco(erro)
+        return
+    linhas = []
+    for posicao, pessoa in enumerate(fila, start=1):
+        linhas.append((f"{posicao}º", pessoa["nome"], pessoa["telefone"],
+                       pessoa["criado_em"].strftime("%d/%m %H:%M")))
+    view.mostrar_fila(linhas)
+
+
+def entrar():
+    telefone = view.ler_telefone()
+    mensagem = cliente_model.validar_telefone(telefone)
+    if mensagem is not None:
+        mensagens.mostrar_atencao(mensagem)
+        return
+    telefone = cliente_model.apenas_digitos(telefone)
+
+    try:
+        cliente = cliente_repository.buscar_por_telefone(telefone)
+        if cliente is None:
+            mensagens.mostrar_atencao("Cliente não cadastrado. Cadastre na aba Clientes primeiro.")
+            return
+        deu_certo = repositorio.adicionar(cliente["id"])
+        posicao = repositorio.contar()
+    except Exception as erro:
+        mensagens.mostrar_erro_banco(erro)
         return
 
-    if fila_repository.cliente_na_fila(cliente.id):
-        print(f"{cliente.nome} já está na fila.")
+    if not deu_certo:
+        mensagens.mostrar_atencao(f"{cliente['nome']} já está na fila.")
         return
 
-    fila_repository.entrar(cliente.id)
-    posicao = len(fila_repository.listar())
-    print(f"Cliente {cliente.nome} entrou na fila! Posição na fila: {posicao}")
+    mensagens.mostrar_aviso(f"{cliente['nome']} entrou na fila na posição {posicao}.")
+    view.limpar_telefone()
+    atualizar_tabela()
 
 
-def mostrar_fila():
-    print("\n=== Fila de atendimento ===")
-    fila = fila_repository.listar()
-    if not fila:
-        print("A fila está vazia.")
+def atender():
+    try:
+        proximo = repositorio.buscar_primeiro()
+        if proximo is None:
+            mensagens.mostrar_atencao("Ninguém na fila.")
+            return
+        repositorio.remover(proximo["id"])
+    except Exception as erro:
+        mensagens.mostrar_erro_banco(erro)
         return
-    for posicao, item in enumerate(fila, start=1):
-        print(f"{posicao}º - {item['nome']}")
-
-
-def atender_proximo():
-    print("\n--- Atender próximo ---")
-    nome = fila_repository.chamar_proximo()
-    if nome is None:
-        print("Ninguém na fila.")
-        return
-    print(f"Chamando: {nome}!")
+    mensagens.mostrar_aviso(f"Chamando: {proximo['nome']}!")
+    atualizar_tabela()
